@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Advertisement } from 'src/entity/advertisement.entity';
 import { In, Repository } from 'typeorm';
 import { CreateAdvertisement } from './dto/create-advertisement.dto';
-import { PaginationOptions } from 'src/constants/pagination-options';
+import { OrderOptions, PaginationOptions } from 'src/constants/pagination-options';
 import { UpdateAdvertisement } from './dto/update-advertisement.dto';
 import { CustomException } from 'src/exception/customException';
 import { plainToClass } from 'class-transformer';
@@ -32,7 +32,10 @@ export class AdvertisementService {
     // })
 
     const [res, total] = await this.advertisementRepository.findAndCount({
-      order: { [pagination.sort]: pagination.sort_by },
+      order: {
+        [pagination.sort || 'advertisementId']:
+          pagination.sort_by || OrderOptions.ASC,
+      },
       take: limit,
       skip: skip,
     });
@@ -85,7 +88,7 @@ export class AdvertisementService {
 
       const re = await this.advertisementRepository.save(advertisement);
       console.log(re);
-     
+
       return await this.advertisementRepository.save(advertisement);
     } catch (error) {
       console.log(error);
