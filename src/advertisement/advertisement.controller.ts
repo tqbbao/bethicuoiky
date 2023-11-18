@@ -1,5 +1,6 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
@@ -9,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AdvertisementService } from './advertisement.service';
 import { PaginationOptions } from 'src/constants/pagination-options';
@@ -16,6 +18,7 @@ import { CreateAdvertisement } from './dto/create-advertisement.dto';
 import { UpdateAdvertisement } from './dto/update-advertisement.dto';
 
 @Controller('advertisement')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AdvertisementController {
   constructor(private readonly advertisementService: AdvertisementService) {}
 
