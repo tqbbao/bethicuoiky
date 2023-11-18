@@ -5,10 +5,12 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,6 +18,7 @@ import { AdvertisementService } from './advertisement.service';
 import { PaginationOptions } from 'src/constants/pagination-options';
 import { CreateAdvertisement } from './dto/create-advertisement.dto';
 import { UpdateAdvertisement } from './dto/update-advertisement.dto';
+import { CustomException } from 'src/exception/customException';
 
 @Controller('advertisement')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -28,19 +31,19 @@ export class AdvertisementController {
   async findAll() {
     const advertisements = await this.advertisementService.findAll();
     if (!advertisements) {
-      throw new NotFoundException('Advertisements not found');
+      throw new CustomException('Advertisements not found', HttpStatus.NOT_FOUND);
     }
     return { message: 'success', data: advertisements };
   }
 
   // Find All Advertisements With Pagination (GET)
   @HttpCode(200)
-  @Get()
+  @Get('/pagination')
   async findAllWithPagination(@Query() pagination: PaginationOptions) {
     const advertisements =
       await this.advertisementService.findAllWithPagination(pagination);
     if (!advertisements) {
-      throw new NotFoundException('Advertisements not found');
+      throw new CustomException('Advertisements not found', HttpStatus.NOT_FOUND);
     }
     return { message: 'success', data: advertisements };
   }
@@ -51,7 +54,7 @@ export class AdvertisementController {
   async findById(@Param('id') id: number) {
     const advertisement = await this.advertisementService.findById(id);
     if (!advertisement) {
-      throw new NotFoundException('Advertisement not found');
+      throw new CustomException('Advertisement not found', HttpStatus.NOT_FOUND);
     }
     return { message: 'success', data: advertisement };
   }
@@ -60,30 +63,42 @@ export class AdvertisementController {
   @HttpCode(201)
   @Post()
   async createAdvertisement(@Body() data: CreateAdvertisement) {
-    const advertisement =
+    try {
+      const advertisement =
       await this.advertisementService.createAdvertisement(data);
-    return { message: 'success', data: advertisement };
+      return { message: 'success', data: advertisement };
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Update Advertisement (PATCH)
   @HttpCode(200)
-  @Patch('/:id')
+  @Put('/:id')
   async updateAdvertisement(
     @Param('id') id: number,
     @Body() data: UpdateAdvertisement,
   ) {
-    const advertisement = await this.advertisementService.updateAdvertisement(
-      id,
-      data,
-    );
-    return { message: 'success', data: advertisement };
+    try {
+      const advertisement = await this.advertisementService.updateAdvertisement(
+        id,
+        data,
+      );
+      return { message: 'success', data: advertisement };
+    } catch (error) {
+      throw error;
+    }
   }
 
   // Delete Advertisement (DELETE)
   @HttpCode(200)
   @Delete(':id')
   async deleteAdvertisement(@Param('id') id: number) {
-    await this.advertisementService.deleteAdvertisement(id);
-    return { message: 'success' };
+    try {
+      await this.advertisementService.deleteAdvertisement(id);
+      return { message: 'success' };
+    } catch (error) {
+      throw error;
+    }
   }
 }
