@@ -6,6 +6,7 @@ import { CreateAdvertisement } from './dto/create-advertisement.dto';
 import { PaginationOptions } from 'src/constants/pagination-options';
 import { UpdateAdvertisement } from './dto/update-advertisement.dto';
 import { CustomException } from 'src/exception/customException';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class AdvertisementService {
@@ -20,16 +21,34 @@ export class AdvertisementService {
   }
 
   // Find All Advertisements With Pagination
-  async findAllWithPagination(pagination: PaginationOptions){
+  async findAllWithPagination(pagination: PaginationOptions) {
     const limit = Number(pagination.limit) || 10;
     const page = Number(pagination.page) || 1;
     const skip = (page - 1) * limit;
+    // return await this.advertisementRepository.find({
+    //   skip: skip,
+    //   take: limit,
+    //   order: { [pagination.sort]: pagination.sort_by }
+    // })
 
-    return await this.advertisementRepository.find({
-      skip: skip,
+    const [res, total] = await this.advertisementRepository.findAndCount({
+      order: { [pagination.sort]: pagination.sort_by },
       take: limit,
-      order: { [pagination.sort]: pagination.sort_by }
-    })
+      skip: skip,
+    });
+
+    const lastPage = Math.ceil(total / limit);
+    const nextPage = page + 1 > lastPage ? null : page + 1;
+    const prevPage = page - 1 < 1 ? null : page - 1;
+
+    return {
+      data: res,
+      total,
+      currentPage: page,
+      nextPage,
+      prevPage,
+      lastPage,
+    };
   }
 
   // Find Advertisement By ID
@@ -48,7 +67,10 @@ export class AdvertisementService {
       return await this.advertisementRepository.save(advertisement);
     } catch (error) {
       console.log(error);
-      throw new CustomException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new CustomException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -60,26 +82,35 @@ export class AdvertisementService {
     }
     try {
       advertisement = { ...advertisement, ...data };
+
+      const re = await this.advertisementRepository.save(advertisement);
+      console.log(re);
+     
       return await this.advertisementRepository.save(advertisement);
     } catch (error) {
       console.log(error);
-      throw new CustomException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new CustomException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   // Delete Advertisement
-  async deleteAdvertisement(id: number){
+  async deleteAdvertisement(id: number) {
     const advertisement = await this.findById(id);
     if (!advertisement) {
       throw new NotFoundException(`Advertisement with ID ${id} not found`);
     }
-    
+
     try {
       return await this.advertisementRepository.remove(advertisement);
     } catch (error) {
       console.log(error);
-      throw new CustomException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new CustomException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
-
 }
