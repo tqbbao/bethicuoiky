@@ -66,7 +66,7 @@ export class AdvertisementService {
   // Create Advertisement
   async createAdvertisement(data: CreateAdvertisement) {
     try {
-      const advertisement = await this.advertisementRepository.create(data);
+      const advertisement = this.advertisementRepository.create(data);
       return await this.advertisementRepository.save(advertisement);
     } catch (error) {
       console.log(error);
@@ -86,10 +86,10 @@ export class AdvertisementService {
     try {
       advertisement = { ...advertisement, ...data };
 
-      const re = await this.advertisementRepository.save(advertisement);
-      console.log(re);
+      return await this.advertisementRepository.save(advertisement, {
+        reload: true,
+      });
 
-      return await this.advertisementRepository.save(advertisement);
     } catch (error) {
       console.log(error);
       throw new CustomException(
